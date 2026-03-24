@@ -8,103 +8,187 @@
             --bg-color: #1a252f;
             --card-front: #2c3e50;
             --card-back: #4caf50;
+            --panel-bg: #243342;
+            --highlight: #3498db;
         }
 
         body {
             background-color: var(--bg-color);
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            flex-direction: row; 
+            height: 100vh;
             margin: 0;
+            overflow: hidden;
             font-family: "Microsoft JhengHei", sans-serif;
+            color: white;
         }
 
-        /* 網格佈局 */
+        /* 左側卡片區 */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(6, 1fr); /* 6 欄 */
-            grid-template-rows: repeat(4, 1fr);    /* 4 列 */
-            gap: 15px;
-            width: 90vw;
-            height: 90vh;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            flex: 1;
+            padding: 20px;
         }
 
-        /* 卡片容器：設定 3D 視距 */
-        .card {
-            perspective: 1000px; 
-            cursor: pointer;
-        }
-
-        /* 內層容器：處理旋轉動畫 */
+        .card { perspective: 1000px; cursor: pointer; min-height: 80px; }
         .card-inner {
             position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
+            width: 100%; height: 100%;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-style: preserve-3d; /* 重要：保持 3D 空間 */
+            transform-style: preserve-3d;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            border-radius: 10px;
+            border-radius: 8px;
         }
 
-        /* 點擊後的翻轉類別 */
-        .card.is-flipped .card-inner {
-            transform: rotateY(180deg);
-        }
+        .card.is-flipped .card-inner { transform: rotateY(180deg); }
 
-        /* 卡片正面與背面共通樣式 */
         .card-face {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden; /* 翻到背面時隱藏正面 */
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2rem;
+            font-size: 1.5rem; /* 在這裡改卡片字體大小 */
             font-weight: bold;
+            border-radius: 8px;
+        }
+
+        .card-front { background-color: var(--card-front); color: #5d6d7e; font-size: 2rem; }
+        .card-back { background-color: var(--card-back); transform: rotateY(180deg); }
+
+        /* 右側統計面板 */
+        .stats-panel {
+            width: 220px;
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-left: 2px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+
+        #stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        /* 統計項目 - 加入點擊效果 */
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer; /* 讓滑鼠變成手型 */
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .stat-item:hover {
+            background: rgba(52, 152, 219, 0.2);
+            border-color: var(--highlight);
+            transform: translateX(-5px);
+        }
+
+        .stat-item.disabled {
+            cursor: default;
+            opacity: 0.2;
+            transform: none;
+            border-color: transparent;
+        }
+
+        .stat-count {
+            color: #f1c40f;
+            font-weight: bold;
+        }
+
+        .reset-btn {
+            margin-top: auto;
+            padding: 12px;
+            background: #e74c3c;
+            border: none;
             color: white;
-            border-radius: 10px;
-            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
         }
-
-        /* 未翻開的面 (正面) */
-        .card-front {
-            background-color: var(--card-front);
-        }
-
-        /* 已翻開的面 (背面) */
-        .card-back {
-            background-color: var(--card-back);
-            transform: rotateY(180deg); /* 預先轉 180 度 */
-        }
-
-        /* 響應式字體大小 */
-        @media (max-width: 600px) {
-            .card-face { font-size: 1rem; }
-            .grid-container { gap: 5px; }
-        }
+        .reset-btn:hover { background: #c0392b; }
     </style>
 </head>
 <body>
 
 <div class="grid-container" id="grid"></div>
 
+<div class="stats-panel">
+    <div class="panel-title">剩餘裝備</div>
+    <div id="stats-list"></div>
+    <button class="reset-btn" onclick="location.reload()">重新洗牌</button>
+</div>
+
 <script>
-    const cards = ["解答之書", "擴音面罩", "緩衝濾鏡", "藉口生成器", "番茄懷錶", "時間加速器", "​原相機拍立得", "過程日記本", "名牌保養品", "掃羅鎧甲", "大衛機弦", "歌利亞戟"];
+    const cards = ["解答之書", "擴音大聲公", "時機暫停器", "說詞產生器", "番茄懷錶", "時間加速器", "​原相機拍立得", "過程日記本", "名牌保養品", "回到過去隨身聽", "逆轉懷錶", "回溯日記本"];
     let values = [...cards, ...cards];
     
-    // 洗牌 (Fisher-Yates Shuffle)
+    // 洗牌
     for (let i = values.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [values[i], values[j]] = [values[j], values[i]];
     }
 
     const grid = document.getElementById('grid');
+    const statsList = document.getElementById('stats-list');
+    let revealedIndices = new Set();
+    const cardElements = []; // 用來儲存卡片 DOM 元素的引用
 
+    // 點擊右側自動翻開左側卡片的功能
+    function autoFlip(name) {
+        // 尋找所有數值等於 name 且尚未翻開的卡片索引
+        const targetIndex = values.findIndex((val, idx) => val === name && !revealedIndices.has(idx));
+        
+        if (targetIndex !== -1) {
+            // 找到目標，模擬點擊該卡片
+            cardElements[targetIndex].click();
+        }
+    }
+
+    function updateStats() {
+        statsList.innerHTML = "";
+        cards.forEach(name => {
+            const total = values.filter(v => v === name).length;
+            const opened = Array.from(revealedIndices).filter(idx => values[idx] === name).length;
+            const remaining = total - opened;
+
+            const div = document.createElement('div');
+            div.className = 'stat-item' + (remaining === 0 ? ' disabled' : '');
+            div.innerHTML = `<span>${name}</span> <span class="stat-count">${remaining}</span>`;
+            
+            // 綁定點擊事件：如果還有剩餘，就呼叫 autoFlip
+            if (remaining > 0) {
+                div.onclick = () => autoFlip(name);
+            }
+            
+            statsList.appendChild(div);
+        });
+    }
+
+    // 初始化卡片
     values.forEach((value, index) => {
-        // 建立 HTML 結構
         const cardElement = document.createElement('div');
         cardElement.className = 'card';
         cardElement.innerHTML = `
@@ -114,13 +198,19 @@
             </div>
         `;
 
-        // 點擊事件
         cardElement.addEventListener('click', () => {
-            cardElement.classList.add('is-flipped');
+            if (!revealedIndices.has(index)) {
+                cardElement.classList.add('is-flipped');
+                revealedIndices.add(index);
+                updateStats();
+            }
         });
-
+        
         grid.appendChild(cardElement);
+        cardElements.push(cardElement); // 存入陣列供之後查找
     });
+
+    updateStats();
 </script>
 
 </body>
